@@ -188,7 +188,7 @@ function App() {
           </div>
           {session && (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-slate-500 hidden sm:inline">@{session.handle}</span>
+              <span className="text-sm text-slate-500 hidden sm:inline">@{session.actor.handle}</span>
               <button onClick={logout} className="text-sm font-medium text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-md transition">
                 Logout
               </button>
