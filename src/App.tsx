@@ -37,7 +37,7 @@ function App() {
       safeLogin: "Safe OAuth login. We never see your password.",
       aboutTitle: "About this app",
       aboutDesc1: "This tool allows you to check if any users you follow are included in a specific Bluesky list (Moderation List or Curated List).",
-      aboutDesc2: "Useful for checking if your friends are included in block lists or specific community lists.",
+      aboutDesc2: "Useful for checking if your friends are included in block lists and preventing you from accidentally blocking them.",
       howToUse: "How to use",
       step1: "Sign in with your Bluesky account (OAuth).",
       step2: "Fetch your follow list.",
@@ -55,12 +55,12 @@ function App() {
       safeLogin: "安全なOAuthログインです。パスワードは送信されません。",
       aboutTitle: "このアプリについて",
       aboutDesc1: "このツールを使用すると、あなたがフォローしているユーザーが、指定したBlueskyリスト（モデレーションリストやユーザーリスト）に含まれているかどうかを確認できます。",
-      aboutDesc2: "友人がブロックリストに含まれていないか確認したり、特定のコミュニティリストに入っているフォローを探すのに便利です。",
+      aboutDesc2: "友人がブロックリストに含まれていないか確認し、誤ってブロックしてしまうのを防止するのに便利です。",
       howToUse: "使い方",
       step1: "Blueskyアカウントでサインインします（OAuth認証）。",
       step2: "あなたのフォロー一覧を取得します。",
       step3: "チェックしたいリストのURLを入力し、メンバーを取得します。",
-      step4: "比較を実行し、結果を表示します。",
+      step4: "リスト内とフォローを比較し、結果を表示します。",
       privacy: "プライバシー: すべての処理はお使いのブラウザ内で行われます。データをサーバーに保存することはありません。",
     }
   }
