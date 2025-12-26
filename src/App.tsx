@@ -122,12 +122,17 @@ function App() {
       if (atUri.startsWith('https://bsky.app/')) {
         const url = new URL(atUri)
         const pathParts = url.pathname.split('/')
+        // Expected format: /profile/{handleOrDid}/lists/{rkey}
         const handleOrDid = pathParts[2]
         const rkey = pathParts[4]
         
         if (handleOrDid && rkey) {
-          const resolved = await agent.resolveHandle({ handle: handleOrDid })
-          atUri = `at://${resolved.data.did}/app.bsky.graph.list/${rkey}`
+          let did = handleOrDid
+          if (!handleOrDid.startsWith('did:')) {
+            const resolved = await agent.resolveHandle({ handle: handleOrDid })
+            did = resolved.data.did
+          }
+          atUri = `at://${did}/app.bsky.graph.list/${rkey}`
         } else {
           throw new Error('Invalid list URL format')
         }
@@ -273,7 +278,7 @@ function App() {
             </section>
 
             {/* Step 3 */}
-            <section className={`bg-white p-6 rounded-2xl shadow-sm border border-slate-200 ${listCount === null ? 'opacity-50 pointer-events-none' : ''}`}>
+            <section className={`bg-white p-6 rounded-2xl shadow-sm border border-slate-200 ${listCount === null || listLoading ? 'opacity-50 pointer-events-none' : ''}`}>
               <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                 <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs">3</span>
                 Compare & View Results
@@ -282,7 +287,8 @@ function App() {
               <div className="mb-6">
                 <button
                   onClick={compareLists}
-                  className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition active:scale-[0.98]"
+                  disabled={listCount === null || listLoading}
+                  className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition disabled:bg-slate-300 disabled:shadow-none active:scale-[0.98]"
                 >
                   Check for Matches
                 </button>
