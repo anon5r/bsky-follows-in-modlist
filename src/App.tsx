@@ -13,6 +13,7 @@ function App() {
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [handle, setHandle] = useState('')
+  const [profile, setProfile] = useState<{ handle: string, avatar?: string } | null>(null)
 
   // Step 1: My Follows
   const [myFollows, setMyFollows] = useState<UserView[]>([])
@@ -45,6 +46,22 @@ function App() {
   useEffect(() => {
     checkSession()
   }, [checkSession])
+
+  useEffect(() => {
+    if (session) {
+      const agent = new Agent(session)
+      agent.getProfile({ actor: session.did })
+        .then(res => {
+          setProfile({
+            handle: res.data.handle,
+            avatar: res.data.avatar
+          })
+        })
+        .catch(err => console.error('Profile fetch error:', err))
+    } else {
+      setProfile(null)
+    }
+  }, [session])
 
   const login = async () => {
     if (!handle) return
@@ -188,7 +205,20 @@ function App() {
           </div>
           {session && (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-slate-500 hidden sm:inline">@{session.sub.handle}</span>
+              {profile ? (
+                <>
+                  <div className="flex items-center gap-2 mr-2">
+                    {profile.avatar ? (
+                      <img src={profile.avatar} className="w-8 h-8 rounded-full border border-slate-200 object-cover" alt={profile.handle} />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-slate-200" />
+                    )}
+                    <span className="text-sm text-slate-700 font-medium hidden sm:inline">@{profile.handle}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-slate-100 animate-pulse mr-2" />
+              )}
               <button onClick={logout} className="text-sm font-medium text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-md transition">
                 Logout
               </button>
