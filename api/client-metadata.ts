@@ -16,7 +16,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     redirect_uris: [`${origin}/`],
     grant_types: ['authorization_code', 'refresh_token'],
     response_types: ['code'],
-    scope: 'atproto rpc:app.bsky.graph.getFollows?aud=did:web:api.bsky.app rpc:app.bsky.graph.getList?aud=did:web:api.bsky.app rpc:app.bsky.actor.getProfile?aud=did:web:api.bsky.app#bsky_appview',
+    scope: 'atproto transition:generic',
     token_endpoint_auth_method: 'none',
     dpop_bound_access_tokens: true,
   });
