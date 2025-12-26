@@ -11,7 +11,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Content-Type', 'application/json');
   res.status(200).json({
     client_id: metadataUrl,
-    client_name: 'Follows in List',
+    client_name: 'For Your Safety',
     client_uri: origin,
     redirect_uris: [`${origin}/`],
     grant_types: ['authorization_code', 'refresh_token'],
