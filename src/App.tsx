@@ -541,11 +541,6 @@ function App() {
       
       <footer className="max-w-4xl mx-auto px-4 py-12 text-center text-slate-400 text-sm">
         <p>Save Your Follows — Built for Bluesky Moderation</p>
-        {window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && (
-          <p className="mt-2 text-amber-500">
-            Note: OAuth may require HTTPS or localhost to function correctly.
-          </p>
-        )}
       </footer>
     </div>
   )
