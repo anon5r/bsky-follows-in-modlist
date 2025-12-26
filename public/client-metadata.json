@@ -1,6 +1,6 @@
 {
   "client_id": "http://localhost:5173/client-metadata.json",
-  "client_name": "For Your Safety",
+  "client_name": "Save Your Follows",
   "client_uri": "http://localhost:5173",
   "redirect_uris": ["http://127.0.0.1:5173/"],
   "grant_types": ["authorization_code", "refresh_token"],

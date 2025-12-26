@@ -13,6 +13,7 @@ function App() {
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [handle, setHandle] = useState('')
+  const [loginLoading, setLoginLoading] = useState(false)
   const [profile, setProfile] = useState<{ handle: string, avatar?: string } | null>(null)
 
   // Step 1: My Follows
@@ -64,12 +65,14 @@ function App() {
   }, [session])
 
   const login = async () => {
-    if (!handle) return
+    if (!handle || loginLoading) return
+    setLoginLoading(true)
     try {
       await client.signIn(handle.startsWith('@') ? handle.substring(1) : handle)
     } catch (err) {
       console.error('Login error:', err)
       alert('Login failed. Please check your handle.')
+      setLoginLoading(false)
     }
   }
 
@@ -201,7 +204,7 @@ function App() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-blue-700">For Your Safety</h1>
+            <h1 className="text-xl font-bold tracking-tight text-blue-700">Save Your Follows</h1>
           </div>
           {session && (
             <div className="flex items-center gap-3">
@@ -238,12 +241,22 @@ function App() {
                 className="w-full border border-slate-300 rounded-xl px-4 py-3 mb-4 outline-none focus:ring-2 focus:ring-blue-500"
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && login()}
+                disabled={loginLoading}
               />
               <button
                 onClick={login}
-                className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition"
+                disabled={loginLoading || !handle}
+                className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 disabled:bg-slate-300 transition flex items-center justify-center gap-2"
               >
-                Sign in with Bluesky
+                {loginLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Redirecting...
+                  </>
+                ) : (
+                  'Sign in with Bluesky'
+                )}
               </button>
             </div>
           </div>

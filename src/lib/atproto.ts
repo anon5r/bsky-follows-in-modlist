@@ -32,7 +32,7 @@ export const client = new BrowserOAuthClient({
   handleResolver: 'https://bsky.social',
   clientMetadata: {
     client_id: clientId,
-    client_name: 'For Your Safety',
+    client_name: 'Save Your Follows',
     client_uri: clientUri,
     redirect_uris: [redirectUri],
     grant_types: ['authorization_code', 'refresh_token'],
