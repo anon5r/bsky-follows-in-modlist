@@ -37,7 +37,7 @@ export const client = new BrowserOAuthClient({
     redirect_uris: [redirectUri],
     grant_types: ['authorization_code', 'refresh_token'],
     response_types: ['code'],
-    scope: 'atproto rpc:app.bsky.graph.getFollows?aud=did:web:api.bsky.app rpc:app.bsky.graph.getList?aud=did:web:api.bsky.app rpc:app.bsky.actor.getProfile?aud=did:web:api.bsky.app#bsky_appview rpc:com.atproto.identity.resolveHandle',
+    scope: 'atproto rpc:app.bsky.graph.getFollows?aud=did:web:api.bsky.app rpc:app.bsky.graph.getList?aud=did:web:api.bsky.app rpc:app.bsky.actor.getProfile?aud=did:web:api.bsky.app',
     token_endpoint_auth_method: 'none',
     dpop_bound_access_tokens: true,
   },
