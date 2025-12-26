@@ -28,6 +28,12 @@ function App() {
   const [listCount, setListCount] = useState<number | null>(null)
   const [listLoading, setListLoading] = useState(false)
   const [listError, setListError] = useState('')
+  const [listMeta, setListMeta] = useState<{
+    name: string;
+    description?: string;
+    avatar?: string;
+    creator: { handle: string; displayName?: string; avatar?: string };
+  } | null>(null)
 
   // Step 3: Results
   const [results, setResults] = useState<UserView[]>([])
@@ -131,6 +137,7 @@ function App() {
     setListError('')
     setListMembersDid(new Set())
     setListCount(0)
+    setListMeta(null)
     setHasChecked(false)
     setResults([])
 
@@ -163,8 +170,25 @@ function App() {
       // Fetch Members
       let members = new Set<string>()
       let cursor: string | undefined
+      let isFirstPage = true
+
       do {
         const res: any = await agent.app.bsky.graph.getList({ list: atUri, cursor, limit: 100 })
+        
+        if (isFirstPage && res.data.list) {
+          setListMeta({
+            name: res.data.list.name,
+            description: res.data.list.description,
+            avatar: res.data.list.avatar,
+            creator: {
+              handle: res.data.list.creator.handle,
+              displayName: res.data.list.creator.displayName,
+              avatar: res.data.list.creator.avatar,
+            }
+          })
+          isFirstPage = false
+        }
+
         res.data.items.forEach((i: any) => members.add(i.subject.did))
         cursor = res.data.cursor
         
@@ -294,18 +318,18 @@ function App() {
                 Get List Members
               </h2>
               <div className="space-y-4">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     placeholder="https://bsky.app/profile/.../lists/..."
-                    className="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+                    className="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 min-w-0"
                     value={listUri}
                     onChange={(e) => setListUri(e.target.value)}
                   />
                   <button
                     onClick={fetchListMembers}
                     disabled={listLoading || !listUri}
-                    className="bg-slate-900 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-slate-800 disabled:bg-slate-300 transition whitespace-nowrap"
+                    className="w-full sm:w-auto bg-slate-900 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-slate-800 disabled:bg-slate-300 transition whitespace-nowrap"
                   >
                     {listLoading ? 'Fetching...' : 'Fetch List'}
                   </button>
@@ -317,6 +341,35 @@ function App() {
                   )}
                   {listError && <span className="text-red-600 text-sm">{listError}</span>}
                 </div>
+
+                {listMeta && (
+                  <div className="mt-4 p-4 border border-slate-200 rounded-xl bg-slate-50 flex gap-4 items-start">
+                    {listMeta.avatar ? (
+                      <img src={listMeta.avatar} alt={listMeta.name} className="w-16 h-16 rounded-lg object-cover shadow-sm bg-white" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-lg bg-blue-100 flex items-center justify-center text-blue-300">
+                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-lg text-slate-900 leading-tight">{listMeta.name}</h3>
+                      <div className="flex items-center gap-2 mt-1 mb-2">
+                        {listMeta.creator.avatar ? (
+                          <img src={listMeta.creator.avatar} alt="" className="w-5 h-5 rounded-full" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-slate-200" />
+                        )}
+                        <p className="text-xs text-slate-500">
+                          by <span className="font-medium text-slate-700">{listMeta.creator.displayName || listMeta.creator.handle}</span>
+                          <span className="text-slate-400 ml-1">(@{listMeta.creator.handle})</span>
+                        </p>
+                      </div>
+                      {listMeta.description && (
+                        <p className="text-sm text-slate-700 whitespace-pre-wrap break-words">{listMeta.description}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
 
