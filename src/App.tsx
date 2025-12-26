@@ -15,6 +15,55 @@ function App() {
   const [handle, setHandle] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
   const [profile, setProfile] = useState<{ handle: string, avatar?: string } | null>(null)
+  
+  // Language Support
+  const [lang, setLang] = useState<'en' | 'ja'>('en')
+  
+  useEffect(() => {
+    const browserLang = navigator.language.startsWith('ja') ? 'ja' : 'en'
+    setLang(browserLang)
+  }, [])
+
+  const toggleLang = () => setLang(prev => prev === 'en' ? 'ja' : 'en')
+
+  const text = {
+    en: {
+      title: "Check your follows in lists",
+      subtitle: "Find out which of your follows are included in a specific moderation or curated list.",
+      handleLabel: "Your Bluesky Handle",
+      placeholder: "e.g., alice.bsky.social",
+      signIn: "Sign in with Bluesky",
+      redirecting: "Redirecting...",
+      safeLogin: "Safe OAuth login. We never see your password.",
+      aboutTitle: "About this app",
+      aboutDesc1: "This tool allows you to check if any users you follow are included in a specific Bluesky list (Moderation List or Curated List).",
+      aboutDesc2: "Useful for checking if your friends are included in block lists or specific community lists.",
+      howToUse: "How to use",
+      step1: "Sign in with your Bluesky account (OAuth).",
+      step2: "Fetch your follow list.",
+      step3: "Enter the URL of the list you want to check and fetch its members.",
+      step4: "Compare and see the results.",
+      privacy: "Privacy: All processing happens in your browser. We do not store your data.",
+    },
+    ja: {
+      title: "リストに含まれるフォローをチェック",
+      subtitle: "あなたのフォローしているユーザーが、特定のモデレーションリストやキュレーションリストに含まれているかを確認できます。",
+      handleLabel: "Blueskyハンドル",
+      placeholder: "例: alice.bsky.social",
+      signIn: "Blueskyでサインイン",
+      redirecting: "リダイレクト中...",
+      safeLogin: "安全なOAuthログインです。パスワードは送信されません。",
+      aboutTitle: "このアプリについて",
+      aboutDesc1: "このツールを使用すると、あなたがフォローしているユーザーが、指定したBlueskyリスト（モデレーションリストやユーザーリスト）に含まれているかどうかを確認できます。",
+      aboutDesc2: "友人がブロックリストに含まれていないか確認したり、特定のコミュニティリストに入っているフォローを探すのに便利です。",
+      howToUse: "使い方",
+      step1: "Blueskyアカウントでサインインします（OAuth認証）。",
+      step2: "あなたのフォロー一覧を取得します。",
+      step3: "チェックしたいリストのURLを入力し、メンバーを取得します。",
+      step4: "比較を実行し、結果を表示します。",
+      privacy: "プライバシー: すべての処理はお使いのブラウザ内で行われます。データをサーバーに保存することはありません。",
+    }
+  }
 
   // Step 1: My Follows
   const [myFollows, setMyFollows] = useState<UserView[]>([])
@@ -230,8 +279,16 @@ function App() {
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold tracking-tight text-blue-700">Save Your Follows</h1>
           </div>
-          {session && (
-            <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={toggleLang}
+              className="text-sm font-medium text-slate-500 hover:text-blue-600 transition flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
+              {lang === 'en' ? '日本語' : 'English'}
+            </button>
+            {session && (
+              <div className="flex items-center gap-3">
               {profile ? (
                 <>
                   <div className="flex items-center gap-2 mr-2">
@@ -251,37 +308,72 @@ function App() {
               </button>
             </div>
           )}
+          </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         {!session ? (
-          <div className="max-w-md mx-auto text-center py-12">
-            <h2 className="text-3xl font-extrabold mb-4">Check your follows in lists</h2>
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mt-8">
-              <input
-                type="text"
-                placeholder="e.g., alice.bsky.social"
-                className="w-full border border-slate-300 rounded-xl px-4 py-3 mb-4 outline-none focus:ring-2 focus:ring-blue-500"
-                value={handle}
-                onChange={(e) => setHandle(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && login()}
-                disabled={loginLoading}
-              />
-              <button
-                onClick={login}
-                disabled={loginLoading || !handle}
-                className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 disabled:bg-slate-300 transition flex items-center justify-center gap-2"
-              >
-                {loginLoading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Redirecting...
-                  </>
-                ) : (
-                  'Sign in with Bluesky'
-                )}
-              </button>
+          <div className="max-w-md mx-auto py-12">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-extrabold mb-4 text-slate-900">{text[lang].title}</h2>
+              <p className="text-slate-600 text-lg">
+                {text[lang].subtitle}
+              </p>
+              
+              <div className="bg-white p-6 rounded-2xl shadow-xl shadow-blue-50 border border-slate-200 mt-8 text-left">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  {text[lang].handleLabel}
+                </label>
+                <input
+                  type="text"
+                  placeholder={text[lang].placeholder}
+                  className="w-full border border-slate-300 rounded-xl px-4 py-3 mb-4 outline-none focus:ring-2 focus:ring-blue-500 transition"
+                  value={handle}
+                  onChange={(e) => setHandle(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && login()}
+                  disabled={loginLoading}
+                />
+                <button
+                  onClick={login}
+                  disabled={loginLoading || !handle}
+                  className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 disabled:bg-slate-300 transition flex items-center justify-center gap-2 shadow-lg shadow-blue-200"
+                >
+                  {loginLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      {text[lang].redirecting}
+                    </>
+                  ) : (
+                    text[lang].signIn
+                  )}
+                </button>
+                <p className="mt-4 text-xs text-slate-400 text-center">
+                  {text[lang].safeLogin}
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-200 pt-12">
+              <h3 className="text-xl font-bold text-slate-800 mb-4">{text[lang].aboutTitle}</h3>
+              <p className="text-slate-600 mb-4 leading-relaxed">
+                {text[lang].aboutDesc1}
+              </p>
+              <p className="text-slate-600 mb-8 leading-relaxed">
+                {text[lang].aboutDesc2}
+              </p>
+              
+              <h4 className="font-bold text-slate-800 mb-3">{text[lang].howToUse}</h4>
+              <ol className="list-decimal list-inside space-y-2 text-slate-600 mb-8 ml-1">
+                <li>{text[lang].step1}</li>
+                <li>{text[lang].step2}</li>
+                <li>{text[lang].step3}</li>
+                <li>{text[lang].step4}</li>
+              </ol>
+
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm text-slate-500">
+                {text[lang].privacy}
+              </div>
             </div>
           </div>
         ) : (
@@ -446,6 +538,15 @@ function App() {
           </div>
         )}
       </main>
+      
+      <footer className="max-w-4xl mx-auto px-4 py-12 text-center text-slate-400 text-sm">
+        <p>Save Your Follows — Built for Bluesky Moderation</p>
+        {window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && (
+          <p className="mt-2 text-amber-500">
+            Note: OAuth may require HTTPS or localhost to function correctly.
+          </p>
+        )}
+      </footer>
     </div>
   )
 }
