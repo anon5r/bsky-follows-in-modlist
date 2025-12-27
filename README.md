@@ -1,73 +1,79 @@
-# React + TypeScript + Vite
+# Save Your Follows
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Save Your Follows** is a web application that checks if any users you follow (or your followers) are included in a specific Bluesky list (Moderation List or Curated List).
 
-Currently, two official plugins are available:
+This tool is useful for:
+- Checking if your friends are inadvertently included in block lists.
+- Finding which of your follows are part of a specific community or curated list.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+![Save Your Follows OGP](public/ogp.svg)
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Secure Login:** OAuth (DPoP + Nonce) authentication with Bluesky. No password sharing required.
+- **Privacy Focused:** All data processing happens client-side in your browser. No data is stored on our servers.
+- **Comprehensive Check:**
+  - Fetch all your follows (and optionally followers).
+  - Fetch all members of a target list (supports large lists with pagination).
+  - Compare and display matches with detailed user info.
+- **Bilingual:** Fully supports English and Japanese (auto-detected).
+- **Responsive Design:** Works on desktop and mobile devices.
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Frontend:** React, TypeScript, Vite
+- **Styling:** Tailwind CSS (v4)
+- **Bluesky Integration:** `@atproto/api`, `@atproto/oauth-client-browser`
+- **Deployment:** Vercel (recommended)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Development
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Prerequisites
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Node.js (v18 or later)
+- npm
+
+### Setup
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/follows-in-list.git
+   cd follows-in-list
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+   Access the app at `http://127.0.0.1:5173/`.
+   *Note: Due to OAuth restrictions, use `127.0.0.1` instead of `localhost`.*
+
+### Build
+
+To build for production:
+
+```bash
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Deployment
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+This project is optimized for deployment on **Vercel**.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. Push your code to a GitHub repository.
+2. Import the repository in Vercel.
+3. Vercel will automatically detect the Vite framework and configure the build settings.
+4. Deploy!
+
+### Environment Variables & OAuth
+
+The application uses dynamic OAuth metadata generation (`api/client-metadata.ts`) to support Vercel's preview and production URLs automatically. No manual environment variable configuration for OAuth is typically required for standard deployments.
+
+## License
+
+MIT License
