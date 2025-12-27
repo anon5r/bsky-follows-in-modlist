@@ -22,9 +22,18 @@ function App() {
   // Option: Include Followers
   const [includeFollowers, setIncludeFollowers] = useState(false)
 
+  // Login History
+  const [loginHistory, setLoginHistory] = useState<string[]>([])
+
   useEffect(() => {
     const browserLang = navigator.language.startsWith('ja') ? 'ja' : 'en'
     setLang(browserLang)
+
+    // Load login history
+    const history = localStorage.getItem('login_history')
+    if (history) {
+      setLoginHistory(JSON.parse(history))
+    }
   }, [])
 
   const toggleLang = () => setLang(prev => prev === 'en' ? 'ja' : 'en')
@@ -57,6 +66,9 @@ function App() {
       noMatches: "No matches found.",
       copyHandles: "Copy Handles",
       clean: "Clean! None found in this list.",
+      loginHistory: "Recent logins",
+      prTitle: "Chronosky: Bluesky Post Scheduler",
+      prDesc: "Schedule your posts for the perfect time.",
     },
     ja: {
       title: "リストに含まれるフォローをチェック",
@@ -85,6 +97,9 @@ function App() {
       noMatches: "一致なし",
       copyHandles: "ハンドルをコピー",
       clean: "リストに含まれるユーザーはいませんでした。",
+      loginHistory: "最近のログイン",
+      prTitle: "Chronosky: Bluesky予約投稿サービス",
+      prDesc: "最適な時間に投稿を予約できます。",
     }
   }
 
@@ -147,10 +162,15 @@ function App() {
   }, [session])
 
   const login = async () => {
-    if (!handle || loginLoading) return
+    let cleanHandle = handle.trim().startsWith('@') ? handle.trim().substring(1) : handle.trim()
+    if (!cleanHandle || loginLoading) return
     setLoginLoading(true)
     try {
-      await client.signIn(handle.startsWith('@') ? handle.substring(1) : handle)
+      await client.signIn(cleanHandle)
+      
+      // Save to history on successful initiation (best effort as it redirects)
+      const newHistory = [cleanHandle, ...loginHistory.filter(h => h !== cleanHandle)].slice(0, 5)
+      localStorage.setItem('login_history', JSON.stringify(newHistory))
     } catch (err) {
       console.error('Login error:', err)
       alert('Login failed. Please check your handle.')
@@ -414,6 +434,23 @@ function App() {
                 <p className="mt-4 text-xs text-slate-400 text-center">
                   {text[lang].safeLogin}
                 </p>
+
+                {loginHistory.length > 0 && (
+                  <div className="mt-6 border-t border-slate-100 pt-4">
+                    <p className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">{text[lang].loginHistory}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {loginHistory.map(h => (
+                        <button
+                          key={h}
+                          onClick={() => setHandle(h)}
+                          className="text-xs bg-slate-50 hover:bg-slate-100 text-slate-600 px-2 py-1 rounded border border-slate-200 transition"
+                        >
+                          {h}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -436,6 +473,24 @@ function App() {
 
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm text-slate-500">
                 {text[lang].privacy}
+              </div>
+
+              {/* PR Section */}
+              <div className="mt-12 p-6 rounded-2xl border-2 border-dashed border-blue-100 bg-blue-50/30">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">PR</span>
+                  <h4 className="font-bold text-slate-800">{text[lang].prTitle}</h4>
+                </div>
+                <p className="text-sm text-slate-600 mb-4">{text[lang].prDesc}</p>
+                <a 
+                  href="https://chronosky.app" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 text-blue-600 font-bold hover:underline"
+                >
+                  chronosky.app
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </a>
               </div>
             </div>
           </div>
