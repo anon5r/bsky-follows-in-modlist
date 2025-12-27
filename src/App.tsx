@@ -19,6 +19,9 @@ function App() {
   // Language Support
   const [lang, setLang] = useState<'en' | 'ja'>('en')
   
+  // Option: Include Followers
+  const [includeFollowers, setIncludeFollowers] = useState(false)
+
   useEffect(() => {
     const browserLang = navigator.language.startsWith('ja') ? 'ja' : 'en'
     setLang(browserLang)
@@ -37,13 +40,23 @@ function App() {
       safeLogin: "Safe OAuth login. We never see your password.",
       aboutTitle: "About this app",
       aboutDesc1: "This tool allows you to check if any users you follow are included in a specific Bluesky list (Moderation List or Curated List).",
-      aboutDesc2: "Useful for checking if your friends are included in block lists and preventing you from accidentally blocking them.",
+      aboutDesc2: "Useful for checking if your friends are included in block lists or specific community lists.",
       howToUse: "How to use",
       step1: "Sign in with your Bluesky account (OAuth).",
       step2: "Fetch your follow list.",
       step3: "Enter the URL of the list you want to check and fetch its members.",
       step4: "Compare and see the results.",
       privacy: "Privacy: All processing happens in your browser. We do not store your data.",
+      includeFollowers: "Also check my followers",
+      fetchButton: "Fetch My Follows",
+      fetching: "Fetching...",
+      successFollows: "follows",
+      successFollowers: "followers",
+      tabFollows: "Matches in Follows",
+      tabFollowers: "Matches in Followers",
+      noMatches: "No matches found.",
+      copyHandles: "Copy Handles",
+      clean: "Clean! None found in this list.",
     },
     ja: {
       title: "リストに含まれるフォローをチェック",
@@ -55,19 +68,31 @@ function App() {
       safeLogin: "安全なOAuthログインです。パスワードは送信されません。",
       aboutTitle: "このアプリについて",
       aboutDesc1: "このツールを使用すると、あなたがフォローしているユーザーが、指定したBlueskyリスト（モデレーションリストやユーザーリスト）に含まれているかどうかを確認できます。",
-      aboutDesc2: "友人がブロックリストに含まれていないか確認し、誤ってブロックしてしまうのを防止するのに便利です。",
+      aboutDesc2: "友人がブロックリストに含まれていないか確認したり、特定のコミュニティリストに入っているフォローを探すのに便利です。",
       howToUse: "使い方",
       step1: "Blueskyアカウントでサインインします（OAuth認証）。",
       step2: "あなたのフォロー一覧を取得します。",
       step3: "チェックしたいリストのURLを入力し、メンバーを取得します。",
-      step4: "リスト内とフォローを比較し、結果を表示します。",
+      step4: "比較を実行し、結果を表示します。",
       privacy: "プライバシー: すべての処理はお使いのブラウザ内で行われます。データをサーバーに保存することはありません。",
+      includeFollowers: "フォロワーもチェックする",
+      fetchButton: "フォロー情報を取得",
+      fetching: "取得中...",
+      successFollows: "件のフォロー",
+      successFollowers: "件のフォロワー",
+      tabFollows: "フォロー内の一致",
+      tabFollowers: "フォロワー内の一致",
+      noMatches: "一致なし",
+      copyHandles: "ハンドルをコピー",
+      clean: "リストに含まれるユーザーはいませんでした。",
     }
   }
 
-  // Step 1: My Follows
+  // Step 1: My Follows & Followers
   const [myFollows, setMyFollows] = useState<UserView[]>([])
+  const [myFollowers, setMyFollowers] = useState<UserView[]>([])
   const [followsCount, setFollowsCount] = useState<number | null>(null)
+  const [followersCount, setFollowersCount] = useState<number | null>(null)
   const [followsLoading, setFollowsLoading] = useState(false)
   const [followsError, setFollowsError] = useState('')
 
@@ -86,7 +111,9 @@ function App() {
 
   // Step 3: Results
   const [results, setResults] = useState<UserView[]>([])
+  const [resultsFollowers, setResultsFollowers] = useState<UserView[]>([])
   const [hasChecked, setHasChecked] = useState(false)
+  const [activeTab, setActiveTab] = useState<'follows' | 'followers'>('follows')
 
   const checkSession = useCallback(async () => {
     try {
@@ -146,14 +173,19 @@ function App() {
     setFollowsLoading(true)
     setFollowsError('')
     setMyFollows([])
+    setMyFollowers([])
     setFollowsCount(0)
+    setFollowersCount(null)
     setHasChecked(false)
     
     try {
       const agent = new Agent(session)
+      
+      // Fetch Follows
       let allFollows: UserView[] = []
       let cursor: string | undefined
       
+      // We will fetch follows first
       do {
         const res: any = await agent.getFollows({ actor: session.did, cursor, limit: 100 })
         const page = res.data.follows.map((f: any) => ({
@@ -164,14 +196,32 @@ function App() {
         }))
         allFollows = [...allFollows, ...page]
         cursor = res.data.cursor
-        
-        // Update progress
         setFollowsCount(allFollows.length)
-        // Small delay to be nice to the API
-        await delay(50)
+        await delay(20)
       } while (cursor)
-
       setMyFollows(allFollows)
+
+      // Fetch Followers if requested
+      if (includeFollowers) {
+        setFollowersCount(0)
+        let allFollowers: UserView[] = []
+        let fCursor: string | undefined
+        do {
+          const res: any = await agent.getFollowers({ actor: session.did, cursor: fCursor, limit: 100 })
+          const page = res.data.followers.map((f: any) => ({
+            did: f.did,
+            handle: f.handle,
+            displayName: f.displayName,
+            avatar: f.avatar
+          }))
+          allFollowers = [...allFollowers, ...page]
+          fCursor = res.data.cursor
+          setFollowersCount(allFollowers.length)
+          await delay(20)
+        } while (fCursor)
+        setMyFollowers(allFollowers)
+      }
+
     } catch (err) {
       console.error(err)
       setFollowsError(err instanceof Error ? err.message : String(err))
@@ -189,6 +239,7 @@ function App() {
     setListMeta(null)
     setHasChecked(false)
     setResults([])
+    setResultsFollowers([])
 
     try {
       const agent = new Agent(session)
@@ -257,10 +308,22 @@ function App() {
   }
 
   const compareLists = () => {
-    if (myFollows.length === 0 || listMembersDid.size === 0) return
-    const matches = myFollows.filter(user => listMembersDid.has(user.did))
-    setResults(matches)
+    if (listMembersDid.size === 0) return
+    
+    // Compare Follows
+    if (myFollows.length > 0) {
+      const matches = myFollows.filter(user => listMembersDid.has(user.did))
+      setResults(matches)
+    }
+
+    // Compare Followers
+    if (myFollowers.length > 0) {
+      const matches = myFollowers.filter(user => listMembersDid.has(user.did))
+      setResultsFollowers(matches)
+    }
+
     setHasChecked(true)
+    setActiveTab('follows')
   }
 
   if (loading) {
@@ -385,20 +448,39 @@ function App() {
                 <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs">1</span>
                 Get Your Follows
               </h2>
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <button
-                  onClick={fetchMyFollows}
-                  disabled={followsLoading}
-                  className="w-full sm:w-auto bg-slate-900 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-slate-800 disabled:bg-slate-300 transition"
-                >
-                  {followsLoading ? 'Fetching...' : 'Fetch My Follows'}
-                </button>
-                <div className="flex-1 text-right sm:text-left">
-                  {followsLoading && <span className="text-blue-600 animate-pulse">Fetching...</span>}
-                  {!followsLoading && followsCount !== null && (
-                    <span className="text-green-600 font-medium">Successfully fetched {followsCount} accounts.</span>
-                  )}
-                  {followsError && <span className="text-red-600 text-sm">{followsError}</span>}
+              <div className="flex flex-col gap-4">
+                <label className="flex items-center gap-2 cursor-pointer w-fit">
+                  <input 
+                    type="checkbox" 
+                    checked={includeFollowers} 
+                    onChange={(e) => setIncludeFollowers(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                    disabled={followsLoading || myFollows.length > 0}
+                  />
+                  <span className="text-sm text-slate-700">{text[lang].includeFollowers}</span>
+                </label>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <button
+                    onClick={fetchMyFollows}
+                    disabled={followsLoading}
+                    className="w-full sm:w-auto bg-slate-900 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-slate-800 disabled:bg-slate-300 transition"
+                  >
+                    {followsLoading ? text[lang].fetching : text[lang].fetchButton}
+                  </button>
+                  <div className="flex-1 text-right sm:text-left text-sm">
+                    {followsLoading && <span className="text-blue-600 animate-pulse">{text[lang].fetching}</span>}
+                    
+                    {!followsLoading && followsCount !== null && (
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <span className="text-green-600 font-medium">✓ {followsCount} {text[lang].successFollows}</span>
+                        {followersCount !== null && (
+                          <span className="text-green-600 font-medium">✓ {followersCount} {text[lang].successFollowers}</span>
+                        )}
+                      </div>
+                    )}
+                    {followsError && <span className="text-red-600">{followsError}</span>}
+                  </div>
                 </div>
               </div>
             </section>
@@ -482,58 +564,183 @@ function App() {
                 </button>
               </div>
 
-              {hasChecked && (
-                <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                  <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2">
-                    <h3 className="text-lg font-bold text-slate-800">
-                      Matches Found: <span className="text-blue-600">{results.length}</span>
-                    </h3>
-                  </div>
+                            {hasChecked && (
 
-                  {results.length === 0 ? (
-                     <p className="text-slate-500 italic">No matches found. None of your follows are in this list.</p>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
-                        <thead>
-                          <tr className="text-xs text-slate-500 border-b border-slate-200">
-                            <th className="py-2 pl-2">User</th>
-                            <th className="py-2">Handle</th>
-                            <th className="py-2">DID</th>
-                            <th className="py-2 pr-2">Link</th>
-                          </tr>
-                        </thead>
-                        <tbody className="text-sm">
-                          {results.map((user) => (
-                            <tr key={user.did} className="border-b border-slate-100 hover:bg-slate-50 transition">
-                              <td className="py-3 pl-2 flex items-center gap-3">
-                                {user.avatar ? (
-                                  <img src={user.avatar} className="w-8 h-8 rounded-full bg-slate-200" alt="" />
+                              <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+
+                                {/* Tabs */}
+
+                                {myFollowers.length > 0 ? (
+
+                                  <div className="flex border-b border-slate-200 mb-4">
+
+                                    <button
+
+                                      onClick={() => setActiveTab('follows')}
+
+                                      className={`px-4 py-2 font-bold text-sm transition ${activeTab === 'follows' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+
+                                    >
+
+                                      {text[lang].tabFollows} <span className="ml-1 bg-slate-100 px-2 py-0.5 rounded-full text-xs">{results.length}</span>
+
+                                    </button>
+
+                                    <button
+
+                                      onClick={() => setActiveTab('followers')}
+
+                                      className={`px-4 py-2 font-bold text-sm transition ${activeTab === 'followers' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+
+                                    >
+
+                                      {text[lang].tabFollowers} <span className="ml-1 bg-slate-100 px-2 py-0.5 rounded-full text-xs">{resultsFollowers.length}</span>
+
+                                    </button>
+
+                                  </div>
+
                                 ) : (
-                                  <div className="w-8 h-8 rounded-full bg-slate-200" />
+
+                                  <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2">
+
+                                    <h3 className="text-lg font-bold text-slate-800">
+
+                                      Matches Found: <span className="text-blue-600">{results.length}</span>
+
+                                    </h3>
+
+                                  </div>
+
                                 )}
-                                <span className="font-medium text-slate-900 truncate max-w-[150px]">{user.displayName || user.handle}</span>
-                              </td>
-                              <td className="py-3 text-slate-600">{user.handle}</td>
-                              <td className="py-3 text-slate-400 font-mono text-xs select-all">{user.did}</td>
-                              <td className="py-3 pr-2 text-right">
-                                <a
-                                  href={`https://bsky.app/profile/${user.handle}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-blue-600 hover:underline text-xs"
-                                >
-                                  View
-                                </a>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              )}
+
+              
+
+                                {/* Results List */}
+
+                                {(activeTab === 'follows' ? results : resultsFollowers).length === 0 ? (
+
+                                   <div className="py-8 text-center text-slate-500 italic">
+
+                                     {text[lang].clean}
+
+                                   </div>
+
+                                ) : (
+
+                                  <>
+
+                                    <div className="mb-2 text-right">
+
+                                       <button 
+
+                                          onClick={() => {
+
+                                            const list = activeTab === 'follows' ? results : resultsFollowers
+
+                                            const str = list.map(r => `@${r.handle}`).join('\n')
+
+                                            navigator.clipboard.writeText(str)
+
+                                            alert(text[lang].copyHandles)
+
+                                          }}
+
+                                          className="text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition"
+
+                                        >
+
+                                          {text[lang].copyHandles}
+
+                                        </button>
+
+                                    </div>
+
+                                    <div className="overflow-x-auto">
+
+                                      <table className="w-full text-left border-collapse">
+
+                                        <thead>
+
+                                          <tr className="text-xs text-slate-500 border-b border-slate-200">
+
+                                            <th className="py-2 pl-2">User</th>
+
+                                            <th className="py-2">Handle</th>
+
+                                            <th className="py-2">DID</th>
+
+                                            <th className="py-2 pr-2">Link</th>
+
+                                          </tr>
+
+                                        </thead>
+
+                                        <tbody className="text-sm">
+
+                                          {(activeTab === 'follows' ? results : resultsFollowers).map((user) => (
+
+                                            <tr key={user.did} className="border-b border-slate-100 hover:bg-slate-50 transition">
+
+                                              <td className="py-3 pl-2 flex items-center gap-3">
+
+                                                {user.avatar ? (
+
+                                                  <img src={user.avatar} className="w-8 h-8 rounded-full bg-slate-200" alt="" />
+
+                                                ) : (
+
+                                                  <div className="w-8 h-8 rounded-full bg-slate-200" />
+
+                                                )}
+
+                                                <span className="font-medium text-slate-900 truncate max-w-[150px]">{user.displayName || user.handle}</span>
+
+                                              </td>
+
+                                              <td className="py-3 text-slate-600">{user.handle}</td>
+
+                                              <td className="py-3 text-slate-400 font-mono text-xs select-all">{user.did}</td>
+
+                                              <td className="py-3 pr-2 text-right">
+
+                                                <a
+
+                                                  href={`https://bsky.app/profile/${user.handle}`}
+
+                                                  target="_blank"
+
+                                                  rel="noreferrer"
+
+                                                  className="text-blue-600 hover:underline text-xs"
+
+                                                >
+
+                                                  View
+
+                                                </a>
+
+                                              </td>
+
+                                            </tr>
+
+                                          ))}
+
+                                        </tbody>
+
+                                      </table>
+
+                                    </div>
+
+                                  </>
+
+                                )}
+
+                              </div>
+
+                            )}
+
+              
             </section>
           </div>
         )}
