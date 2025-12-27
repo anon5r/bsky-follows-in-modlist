@@ -475,23 +475,6 @@ function App() {
                 {text[lang].privacy}
               </div>
 
-              {/* PR Section */}
-              <div className="mt-12 p-6 rounded-2xl border-2 border-dashed border-blue-100 bg-blue-50/30">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">PR</span>
-                  <h4 className="font-bold text-slate-800">{text[lang].prTitle}</h4>
-                </div>
-                <p className="text-sm text-slate-600 mb-4">{text[lang].prDesc}</p>
-                <a 
-                  href="https://chronosky.app" 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 text-blue-600 font-bold hover:underline"
-                >
-                  chronosky.app
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                </a>
-              </div>
             </div>
           </div>
         ) : (
@@ -800,7 +783,24 @@ function App() {
           </div>
         )}
       </main>
-      
+
+      {/* PR Section */}
+      <div className="mt-12 p-6 rounded-2xl border-2 border-dashed border-blue-100 bg-blue-50/30">
+        <div className="flex items-center gap-3 mb-2">
+          <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">PR</span>
+          <h4 className="font-bold text-slate-800">{text[lang].prTitle}</h4>
+        </div>
+        <p className="text-sm text-slate-600 mb-4">{text[lang].prDesc}</p>
+        <a
+          href="https://chronosky.app"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 text-blue-600 font-bold hover:underline"
+        >
+          chronosky.app
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+        </a>
+      </div>
       <footer className="max-w-4xl mx-auto px-4 py-12 text-center text-slate-400 text-sm">
         <p>Save Your Follows — Built for Bluesky Moderation</p>
         <p>Created by <a href="//bsky.app/profile/anon5r.com">@anon5r.com</a></p>
