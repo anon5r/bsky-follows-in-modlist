@@ -541,6 +541,7 @@ function App() {
       
       <footer className="max-w-4xl mx-auto px-4 py-12 text-center text-slate-400 text-sm">
         <p>Save Your Follows — Built for Bluesky Moderation</p>
+        <p>Created by <a href="//bsky.app/profile/anon5r.com">@anon5r.com</a></p>
       </footer>
     </div>
   )
