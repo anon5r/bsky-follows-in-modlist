@@ -510,7 +510,7 @@ function App() {
                     checked={includeFollowers} 
                     onChange={(e) => setIncludeFollowers(e.target.checked)}
                     className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                    disabled={followsLoading || myFollows.length > 0}
+                    disabled={followsLoading}
                   />
                   <span className="text-sm text-slate-700">{text[lang].includeFollowers}</span>
                 </label>
